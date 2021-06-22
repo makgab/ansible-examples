@@ -1,2 +1,2 @@
 # ansible-examples
-Ansibale example config files
+Ansible example config files
