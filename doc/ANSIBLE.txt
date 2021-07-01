@@ -1,0 +1,121 @@
+-------
+-------
+ANSIBLE
+-------
+-------
+
+
+
+* https://www.ansible.com
+
+
+
+* Miért Ansible?
+
+  Az informatika területén valószínűleg ugyanazokat a feladatokat végzi újra és újra.
+  Mi lenne, ha egyszer megoldaná a problémákat, majd a továbbiakban automatizálná a megoldásokat?
+
+  Jellemzők:
+  * konfiguráció menedzsment
+  * szerver konfiguráció
+  * RedHat tartja karban az Ansible-t
+  * Free, Open Source
+  * Vezérlő gép
+  * SSH hozzáféréssel
+     (ANSIBLE.png)
+
+
+* Parancsok, CLI
+
+    * control machine:
+    ~# ssh-keygen
+    ~# ssh-copy-id <server_name>
+    ~# apt install ansible
+    ~# dnf install ansible
+
+    * Config:       /etc/ansible
+      Files, dirs:  ansible.cfg, hosts, roles/
+
+    * Copy config to local user:
+    ~# cp -R /etc/ansible myplatform
+    ~# cd myplatform
+
+    * edit:
+    ~# vi ansible.cfg
+    inventory = hosts
+
+    * edit hosts file
+    ~# vi hosts
+    webserver
+    appserver
+    dbserver
+
+    * PING
+    ~# ansible -m ping all
+
+    * Module: shell, -a module arguments
+    ~# ansible -m shell -a 'hostname' all
+    ~# ansible -m shell -a 'df -h' all
+    ~# ansible -m shell -a 'whoami' all
+
+    * USER:
+    ~# ansible -b -K -m user -a 'name=testuser' all
+    ~# ansible -m shell -a 'getent passwd | grep testuser' all
+    ~# ansible -b -K -m user -a 'name=testuser state=absent' all
+
+
+
+* PLAYBOOKS
+
+    * control machine:
+    ~# cd myplatform
+    ~# mkdir -p roles/basic/tasks
+    ~# vi roles/basic/tasks/main.yml
+    - name: "Installing VIM"
+      apt: pkg=vim state=installed
+
+    - name: "Installing GIT"
+      apt: pkg=git state=installed
+
+    ~# vi playbook.yml
+    ---
+    - hosts: all
+      become: true
+      roles:
+      - basic
+
+   ~# ansible-playbook -K playbook.yml
+
+   * items with cycle:
+    ~# vi roles/basic/tasks/main.yml
+    - name: "Installing additional softwares"
+      apt: pkg={{ item }} state=installed
+      with_items:
+      - dnsutils
+      - git
+      - vim
+      - ntp
+
+   ~# ansible-playbook -K playbook.yml
+
+   * Adding files:
+    ~# vi roles/basic/tasks/main.yml
+    - name: "Installing additional softwares"
+      apt: pkg={{ item }} state=installed
+      with_items:
+      - dnsutils
+      - git
+      - vim
+      - ntp
+
+    - name: "Adding bashrc"
+      - copy: src=../files/bash.bashrc dest=/etc/bash.bashrc owner=root group=root mode=0644
+
+    ~# mkdir roles/basic/files
+    ~# cp /tmp/bash.bashrc roles/basic/files
+
+    ~# ansible-playbook -K playbook.yml
+
+
+
+
